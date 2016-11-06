@@ -1,0 +1,13 @@
+{
+  "http.port" : 8082,
+  "benchmark" :
+    {
+        "contractors" : 1000,
+        "interactions" : 40
+    },
+  "repository" :
+    {
+        "engine" : "JenaTDB",
+        "in-memory" : true
+    }
+}

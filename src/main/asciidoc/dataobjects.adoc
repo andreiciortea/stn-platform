@@ -1,0 +1,13 @@
+= Cheatsheets
+
+[[DigitalArtifactDeprecated]]
+== DigitalArtifactDeprecated
+
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[type]]`type`|`String`|-
+|===
+
