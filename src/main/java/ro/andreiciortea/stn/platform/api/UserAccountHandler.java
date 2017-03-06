@@ -29,9 +29,13 @@ public class UserAccountHandler extends ArtifactHandler {
         
         ArtifactValidator validator = new BasicArtifactValidator(requiredStatements);
         
-        if (validator.validate(RdfUtils.stringToRdfModel(representation, format))) {
-            return representation;
-        } else {
+        try {
+            if (validator.validate(RdfUtils.stringToRdfModel(representation, format))) {
+                return representation;
+            } else {
+                throw new InvalidArtifactRepresentationException();
+            }
+        } catch (Exception e) {
             throw new InvalidArtifactRepresentationException();
         }
     }

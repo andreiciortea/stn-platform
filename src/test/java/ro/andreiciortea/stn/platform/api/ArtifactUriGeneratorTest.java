@@ -1,4 +1,4 @@
-package ro.andreiciortea.stn.platform.artifact;
+package ro.andreiciortea.stn.platform.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import ro.andreiciortea.stn.platform.api.ArtifactUriGenerator;
-import ro.andreiciortea.stn.platform.api.InvalidContainerUriException;
 
 public class ArtifactUriGeneratorTest {
 

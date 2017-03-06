@@ -29,8 +29,13 @@ public class HttpServerVerticle extends AbstractVerticle {
     
     private void mountArtifactDefaultRoutes(String containerRelativeUri, ArtifactHandler handler) {
         router.get(containerRelativeUri + ":artifactId").handler(handler::handleGetArtifact);
-        router.put(containerRelativeUri + ":artifactId").handler(handler::handlePutArtifact);
-        router.post(containerRelativeUri).handler(handler::handlePostArtifact);
+        
+        router.put(containerRelativeUri + ":artifactId")
+                .consumes(ArtifactHandler.CONTENT_TYPE_TURTLE).handler(handler::handlePutArtifact);
+        
+        router.post(containerRelativeUri)
+                .consumes(ArtifactHandler.CONTENT_TYPE_TURTLE).handler(handler::handlePostArtifact);
+        
         router.delete(containerRelativeUri + ":artifactId").handler(handler::handleDeleteArtifact);
     }
     

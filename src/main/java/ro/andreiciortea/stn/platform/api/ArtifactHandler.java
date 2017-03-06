@@ -23,8 +23,8 @@ public abstract class ArtifactHandler {
     
     public static final String CONTENT_TYPE_TURTLE = "text/turtle"; 
     
-    private boolean persistent;
-    private boolean observable; // TODO
+    private boolean persistent = true;
+    private boolean observable = false; // TODO
     
     
     public ArtifactHandler withoutStorage() {
@@ -50,6 +50,7 @@ public abstract class ArtifactHandler {
                         if (response.getStatusCode() == RepositoryResponse.SC_OK) {
                             routingContext
                                 .response()
+                                .setStatusCode(HttpStatus.SC_OK)
                                 .putHeader(HttpHeaders.CONTENT_TYPE, ArtifactHandler.CONTENT_TYPE_TURTLE)
                                 .end(response.getArtifactAsString());
                         } else {
@@ -69,7 +70,7 @@ public abstract class ArtifactHandler {
             artifactStr = processArtifactRepresentation(artifactUri, artifactStr, RdfUtils.TURTLE);
             
             if (persistent) {
-                persistArtifact(routingContext, RepositoryRequest.PUT, artifactUri, "", HttpStatus.SC_OK);
+                persistArtifact(routingContext, RepositoryRequest.PUT, artifactUri, artifactStr, HttpStatus.SC_OK);
             }
         } catch (InvalidArtifactRepresentationException e) {
             routingContext.fail(HttpStatus.SC_BAD_REQUEST);
@@ -102,23 +103,28 @@ public abstract class ArtifactHandler {
         
         RepositoryRequest repositoryRequest = new RepositoryRequest(RepositoryRequest.DELETE, artifactUri);
         
-        sendRepositoryRequest(repositoryRequest,
-                r -> {
-                    if (r.succeeded()) {
-                        RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
-                        
-                        if (response.getStatusCode() == HttpStatus.SC_OK) {
-                            routingContext
-                                .response()
-                                .putHeader(HttpHeaders.CONTENT_TYPE, ArtifactHandler.CONTENT_TYPE_TURTLE)
-                                .end(response.getArtifactAsString());
+        if (persistent) {
+            System.out.println("Sending delete request to repository");
+            
+            sendRepositoryRequest(repositoryRequest,
+                    r -> {
+                        if (r.succeeded()) {
+                            RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
+                            
+                            if (response.getStatusCode() == HttpStatus.SC_OK) {
+                                routingContext
+                                    .response()
+                                    .setStatusCode(HttpStatus.SC_OK)
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, ArtifactHandler.CONTENT_TYPE_TURTLE)
+                                    .end(response.getArtifactAsString());
+                            } else {
+                                routingContext.fail(response.getStatusCode());
+                            }
                         } else {
-                            routingContext.fail(response.getStatusCode());
+                            routingContext.fail(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                         }
-                    } else {
-                        routingContext.fail(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                    }
-                });
+                    });
+        }
     }
     
     private String replaceNullRealtiveURIs(String artifactUri, String representation, String format) {
@@ -143,8 +149,17 @@ public abstract class ArtifactHandler {
                         if (response.getStatusCode() == successStatusCode) {
                             routingContext
                                 .response()
-                                .putHeader(HttpHeaders.CONTENT_TYPE, ArtifactHandler.CONTENT_TYPE_TURTLE)
-                                .end(response.getArtifactAsString());
+                                .setStatusCode(successStatusCode)
+                                .putHeader(HttpHeaders.CONTENT_TYPE, ArtifactHandler.CONTENT_TYPE_TURTLE);
+                            
+                            if (successStatusCode == HttpStatus.SC_CREATED) {
+                                routingContext
+                                    .response()
+                                    .putHeader(HttpHeaders.LOCATION, response.getArtifactUri());
+                            }
+                            
+                            routingContext
+                                .response().end(response.getArtifactAsString());
                         } else {
                             routingContext.fail(response.getStatusCode());
                         }

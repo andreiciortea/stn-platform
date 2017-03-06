@@ -8,7 +8,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import io.vertx.serviceproxy.ProxyHelper;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
 import ro.andreiciortea.stn.platform.eventbus.StnEventBus;

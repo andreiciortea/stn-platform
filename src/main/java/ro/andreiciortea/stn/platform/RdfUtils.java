@@ -14,6 +14,10 @@ public class RdfUtils {
     
     
     public static Model stringToRdfModel(String representation, String format) {
+        if (representation == null) {
+            throw new IllegalArgumentException("Representation cannot be null.");
+        }
+        
         InputStream stream = new ByteArrayInputStream(representation.getBytes(StandardCharsets.UTF_8));
         
         return ModelFactory.createDefaultModel().read(stream, null, format);
