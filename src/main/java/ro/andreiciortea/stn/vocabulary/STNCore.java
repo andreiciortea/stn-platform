@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 public class STNCore {
 
-    private static final String STN_PREFIX = "http://purl.org/stn/core#";
+    public static final String STN_PREFIX = "http://purl.org/stn/core#";
 
     public static Resource resource(String fragment) {
         return ResourceFactory.createResource(STN_PREFIX + fragment);

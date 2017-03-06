@@ -1,4 +1,4 @@
-package ro.andreiciortea.stn.platform.http;
+package ro.andreiciortea.stn.platform.api;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -211,10 +211,10 @@ public class ArtifactHttpRouterBuilder {
 //        String payload = context.getBodyAsString();
         
         try {
-            String artifactStr = DigitalArtifactModelValidator.cleanseModel(artifactUri, 
+            String artifactStr = DigitalArtifactModelValidator.cleanseModel(artifactModel,
+                                        artifactUri, 
                                         payload, 
-                                        RepositoryService.TURTLE, 
-                                        artifactModel
+                                        RepositoryService.TURTLE 
                                     );
             
             if (artifactStr == null) {
@@ -230,6 +230,9 @@ public class ArtifactHttpRouterBuilder {
                             RepositoryService.TURTLE, 
                             resultHandler
                         );
+                    
+//                    RepositoryRequest repoReq = new RepositoryRequest(RepositoryRequest.PUT, artifactUri, artifactStr);
+//                    StnEventBus.publishMessage(vertx, StnEventBus.REPOSITORY_ADDRESS, repoReq);
                 }
                 
                 if (artifactModel.isObservable()) {

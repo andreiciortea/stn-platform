@@ -3,7 +3,7 @@ package ro.andreiciortea.stn.platform;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import ro.andreiciortea.stn.platform.agent.JaCaMoProxyVerticle;
-import ro.andreiciortea.stn.platform.http.StnHttpServerVerticle;
+import ro.andreiciortea.stn.platform.api.HttpServerVerticle;
 import ro.andreiciortea.stn.platform.notification.NotificationServiceVerticle;
 import ro.andreiciortea.stn.platform.repository.RepositoryServiceVerticle;
 
@@ -19,7 +19,11 @@ public class HubStarterVerticle extends AbstractVerticle {
                 new DeploymentOptions().setConfig(config())
             );
         
-        vertx.deployVerticle(new StnHttpServerVerticle(),
+//        vertx.deployVerticle(new StnHttpServerVerticle(),
+//                new DeploymentOptions().setConfig(config())
+//            );
+        
+        vertx.deployVerticle(new HttpServerVerticle(),
                 new DeploymentOptions().setConfig(config())
             );
         

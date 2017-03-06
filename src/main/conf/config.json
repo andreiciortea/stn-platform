@@ -1,5 +1,10 @@
 {
   "http.port" : 8080,
+  "http" :
+    {
+      "port" : 8080,
+      "host" : "localhost"
+    },
   "benchmark" :
     {
         "contractors" : 1000,

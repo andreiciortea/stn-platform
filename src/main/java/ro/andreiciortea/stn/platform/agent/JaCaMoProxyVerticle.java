@@ -3,9 +3,9 @@ package ro.andreiciortea.stn.platform.agent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
+import ro.andreiciortea.stn.platform.api.ArtifactHttpRouterBuilder;
 import ro.andreiciortea.stn.platform.artifact.DigitalArtifactModel;
 import ro.andreiciortea.stn.platform.artifact.MessageModel;
-import ro.andreiciortea.stn.platform.http.ArtifactHttpRouterBuilder;
 
 
 public class JaCaMoProxyVerticle extends AbstractVerticle {

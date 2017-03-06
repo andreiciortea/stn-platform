@@ -16,19 +16,18 @@ import ro.andreiciortea.stn.platform.repository.RepositoryService;
 public class DigitalArtifactModelValidator {
     
     /**
-     * Cleanses an RDF serialization of a digital artifact in a given 
+     * Process an RDF serialization of a digital artifact in a given 
      * RDF serialization format and using a given data model validator.
      * 
-     * @param rdfString
+     * @param representation
      * @param serializationFormat
      * @param validator
      * @return
      */
-    public static String cleanseModel(String artifactUri, String rdfString, 
-            String serializationFormat, DigitalArtifactModel artifactModel) {
+    public static String cleanseModel(DigitalArtifactModel artifactModel, String artifactUri, String representation, String serializationFormat) {
         
         InputStream stream = new ByteArrayInputStream(
-                rdfString
+                representation
                     .replaceAll("<>", "<" + artifactUri + ">")
                     .getBytes(StandardCharsets.UTF_8)
             );
