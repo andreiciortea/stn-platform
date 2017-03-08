@@ -13,6 +13,8 @@ public class RdfUtils {
     public static final String TURTLE = "turtle";
     
     
+    private RdfUtils() { }
+    
     public static Model stringToRdfModel(String representation, String format) {
         if (representation == null) {
             throw new IllegalArgumentException("Representation cannot be null.");

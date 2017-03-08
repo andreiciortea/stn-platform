@@ -22,7 +22,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
 import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
-import ro.andreiciortea.stn.platform.eventbus.StnMessage;
+import ro.andreiciortea.stn.platform.eventbus.BusMessage;
 import ro.andreiciortea.stn.vocabulary.STNCore;
 
 @RunWith(VertxUnitRunner.class)
@@ -76,7 +76,7 @@ public class UserAccountHandlerTest {
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
                 
                 context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
                 
@@ -88,7 +88,7 @@ public class UserAccountHandlerTest {
                 RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_OK, testUri, testRepresentation);
                 
                 DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
                 
                 message.reply(response.toJson(), options);
             });
@@ -120,7 +120,7 @@ public class UserAccountHandlerTest {
         Async async = context.async();
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-            String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+            String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
             
             context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
             
@@ -131,7 +131,7 @@ public class UserAccountHandlerTest {
             RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactUri());
             
             DeliveryOptions options = new DeliveryOptions();
-            options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+            options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
             
             message.reply(response.toJson(), options);
         });
@@ -152,7 +152,7 @@ public class UserAccountHandlerTest {
         String processedRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
                 
                 context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
                 
@@ -166,7 +166,7 @@ public class UserAccountHandlerTest {
                         request.getArtifactUri(), request.getArtifactStr());
                 
                 DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
                 
                 message.reply(response.toJson(), options);
             });
@@ -215,7 +215,7 @@ public class UserAccountHandlerTest {
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
                 
                 context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
                 
@@ -229,7 +229,7 @@ public class UserAccountHandlerTest {
                         request.getArtifactUri(), request.getArtifactStr());
                 
                 DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
                 
                 message.reply(response.toJson(), options);
             });
@@ -275,7 +275,7 @@ public class UserAccountHandlerTest {
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
                 
                 context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
                 
@@ -292,7 +292,7 @@ public class UserAccountHandlerTest {
                         request.getArtifactUri(), testRepresentation);
                 
                 DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
                 
                 message.reply(response.toJson(), options);
             });
@@ -315,7 +315,7 @@ public class UserAccountHandlerTest {
         String testUri = "http://localhost:" + port + "/users/test";
         
         vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
                 
                 context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
                 
@@ -327,7 +327,7 @@ public class UserAccountHandlerTest {
                 RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactUri());
                 
                 DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
                 
                 message.reply(response.toJson(), options);
             });

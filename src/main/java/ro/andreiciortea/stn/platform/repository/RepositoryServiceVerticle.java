@@ -2,17 +2,17 @@ package ro.andreiciortea.stn.platform.repository;
 
 import java.util.Locale;
 
+import org.apache.http.HttpStatus;
+
 import com.google.gson.Gson;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import ro.andreiciortea.stn.platform.eventbus.BusMessage;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
 import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
-import ro.andreiciortea.stn.platform.eventbus.StnMessage;
-import ro.andreiciortea.stn.platform.repository.jena.tdb.JenaTDBRepository;
 
 public class RepositoryServiceVerticle extends AbstractVerticle {
 
@@ -23,22 +23,26 @@ public class RepositoryServiceVerticle extends AbstractVerticle {
     public static final String DEFAULT_REPO_ENGINE = "JenaTDB";
     
     
-    public Repository initRepository() {
+    public ArtifactRepository initRepository() {
         String repoEngine = DEFAULT_REPO_ENGINE;
-        boolean inMemory = false;
         
-        JsonObject repoConfig = vertx.getOrCreateContext().config().getJsonObject("repository");
+        JsonObject config = vertx.getOrCreateContext().config().getJsonObject("repository");
         
-        if (repoConfig != null) {
-            repoEngine = repoConfig.getString("engine", DEFAULT_REPO_ENGINE);
-            inMemory = repoConfig.getBoolean("in-memory", false);
+        if (config != null) {
+            repoEngine = config.getString("engine", DEFAULT_REPO_ENGINE);
         }
+        
+        ArtifactRepository repository;
         
         switch (repoEngine.toUpperCase(Locale.ROOT)) {
-            case "JENATDB": return new JenaTDBRepository(vertx, inMemory);
+            case "JENATDB": repository = new JenaTDBRepository();
 //            case "RDF4J" : return new Rdf4jRepositoryService(vertx);
-            default: return new JenaTDBRepository(vertx, inMemory);
+            default: repository = new JenaTDBRepository();
         }
+        
+        repository.init(config);
+        
+        return repository;
     }
     
     @Override
@@ -48,14 +52,14 @@ public class RepositoryServiceVerticle extends AbstractVerticle {
 //        ProxyHelper.registerService(RepositoryService.class, 
 //                vertx, repository, RepositoryService.EVENT_BUS_ADDRESS);
         
-        Repository repo = initRepository();
+        ArtifactRepository repo = initRepository();
         
         EventBus ebus = vertx.eventBus();
         
         ebus.consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
 //            System.out.println(message.headers().get(StnMessage.HEADER_CONTENT_TYPE) + " " + message.body());
             
-            String contentType = message.headers().get(StnMessage.HEADER_CONTENT_TYPE);
+            String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
             
             if (contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE)) {
 //                System.out.println("Got repository request: " + message.body().toString());
@@ -63,25 +67,32 @@ public class RepositoryServiceVerticle extends AbstractVerticle {
                 RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
                 
                 String verb = request.getVerb();
-                String artifactUri = request.getArtifactUri();
+                String artifactIri = request.getArtifactUri();
                 RepositoryResponse response;
                 
+                
+                // TODO
+                
                 if (verb.equalsIgnoreCase(RepositoryRequest.GET)) {
-                    response = repo.getArtifact(artifactUri, RepositoryServiceVerticle.TURTLE);
+                    String artifactStr;
                     
-                    DeliveryOptions options = new DeliveryOptions();
-                    options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
+                    try {
+                        artifactStr = repo.getArtifact(artifactIri, RepositoryServiceVerticle.TURTLE);
+                        response = new RepositoryResponse(HttpStatus.SC_OK, artifactIri, artifactStr);
+                    } catch (ArtifactNotFoundException e) {
+                        response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, artifactIri);
+                    }
                     
-                    message.reply(response.toJson(), options);
+                    message.reply(response.toJson());
                 } else if (verb.equalsIgnoreCase(RepositoryRequest.POST)) {
+                    try {
+                        repo.createArtifact(artifactIri, request.getArtifactStr(), RepositoryServiceVerticle.TURTLE);
+                        response = new RepositoryResponse(HttpStatus.SC_CREATED, artifactIri, request.getArtifactStr());
+                    } catch (ArtifactRepositoryException e) {
+                        response = new RepositoryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, artifactIri);
+                    }
                     
-                    response = repo.putArtifact(artifactUri, 
-                            request.getArtifactStr(), RepositoryServiceVerticle.TURTLE);
-                    
-                    DeliveryOptions options = new DeliveryOptions();
-                    options.addHeader(StnMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                    
-                    message.reply(response.toJson(), options);
+                    message.reply(response.toJson());
                 }
             }
         });

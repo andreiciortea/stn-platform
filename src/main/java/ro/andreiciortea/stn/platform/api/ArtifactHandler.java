@@ -47,7 +47,7 @@ public abstract class ArtifactHandler {
                     if (r.succeeded()) {
                         RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
                         
-                        if (response.getStatusCode() == RepositoryResponse.SC_OK) {
+                        if (response.getStatusCode() == HttpStatus.SC_OK) {
                             routingContext
                                 .response()
                                 .setStatusCode(HttpStatus.SC_OK)

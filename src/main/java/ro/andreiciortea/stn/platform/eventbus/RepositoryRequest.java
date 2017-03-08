@@ -1,8 +1,6 @@
 package ro.andreiciortea.stn.platform.eventbus;
 
-import com.google.gson.Gson;
-
-public class RepositoryRequest extends StnMessage {
+public class RepositoryRequest extends BusMessage {
     
     public static final String CONTENT_TYPE = "repository-request";
     
@@ -47,10 +45,5 @@ public class RepositoryRequest extends StnMessage {
     
     public String getArtifactStr() {
         return this.artifactStr;
-    }
-    
-    // TODO: remove
-    public String toJson() {
-        return new Gson().toJson(this, this.getClass());
     }
 }

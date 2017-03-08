@@ -1,12 +1,8 @@
 package ro.andreiciortea.stn.platform.eventbus;
 
-public class RepositoryResponse extends StnMessage {
-
-    public static final String CONTENT_TYPE = "repository-response";
+public class RepositoryResponse extends BusMessage {
     
-    public static final int SC_OK = 200;
-    public static final int SC_NOT_FOUND = 404;
-    public static final int SC_INTERNAL_ERROR = 500;
+    public static final String CONTENT_TYPE = "repository-response";
     
     private int statusCode;
     private String artifactUri;

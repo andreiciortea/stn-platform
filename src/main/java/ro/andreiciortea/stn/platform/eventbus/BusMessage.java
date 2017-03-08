@@ -2,12 +2,12 @@ package ro.andreiciortea.stn.platform.eventbus;
 
 import com.google.gson.Gson;
 
-public abstract class StnMessage {
+public abstract class BusMessage {
     
     public static final String HEADER_CONTENT_TYPE = "content-type";
     
     
-    public StnMessage() {  }
+    public BusMessage() {  }
     
     public abstract String getContentType();
     

@@ -16,20 +16,20 @@ public class StnEventBus {
         this.vertx = Vertx.currentContext().owner();
     }
     
-    public void publishMessage(String topic, StnMessage message) {
+    public void publishMessage(String topic, BusMessage message) {
         DeliveryOptions options = new DeliveryOptions();
-        options.addHeader(StnMessage.HEADER_CONTENT_TYPE, message.getContentType());
+        options.addHeader(BusMessage.HEADER_CONTENT_TYPE, message.getContentType());
         
         if (vertx != null && vertx.eventBus() != null) {
             vertx.eventBus().publish(topic, message.toJson(), options);
         }
     }
     
-    public void sendMessage(String topic, StnMessage message, 
+    public void sendMessage(String topic, BusMessage message, 
             Handler<AsyncResult<Message<String>>> handler) {
         
         DeliveryOptions options = new DeliveryOptions();
-        options.addHeader(StnMessage.HEADER_CONTENT_TYPE, message.getContentType());
+        options.addHeader(BusMessage.HEADER_CONTENT_TYPE, message.getContentType());
         
         if (vertx != null && vertx.eventBus() != null) {
             vertx.eventBus().send(topic, message.toJson(), options, handler);
