@@ -112,7 +112,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     }
     
     @Override
-    public ResultSet runSelectQuery(String queryString) throws RepositoryException {
+    public String runSelectQuery(String queryString) throws RepositoryException {
         dataset.begin(ReadWrite.READ);
         
         try (QueryExecution qexec = QueryExecutionFactory.create(queryString, dataset)) {
@@ -123,7 +123,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
             
             dataset.end();
             
-            return queryResultSet; //new RepositoryResponse(HttpStatus.SC_OK, null, out.toString("UTF-8"));
+            return out.toString("UTF-8");
         } catch(Exception e) {
             dataset.end();
             throw new RepositoryException();
@@ -131,7 +131,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     }
     
     @Override
-    public Model runConstructQuery(String queryString, String format) throws RepositoryException {
+    public String runConstructQuery(String queryString, String format) throws RepositoryException {
         dataset.begin(ReadWrite.READ);
         
         try (QueryExecution qexec = QueryExecutionFactory.create(queryString, dataset)) {
@@ -139,7 +139,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
             
             dataset.end();
             
-            return model;
+            return RdfUtils.rdfModelToString(model, format);
         } catch(Exception e) {
             dataset.end();
             throw new RepositoryException();
@@ -151,9 +151,9 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
         // TODO
         throw new UnsupportedOperationException();
     }
-
+    
     @Override
-    public Model runDescribeQuery(String queryString, String format) throws RepositoryException {
+    public String runDescribeQuery(String queryString, String format) throws RepositoryException {
         // TODO
         throw new UnsupportedOperationException();
     }

@@ -14,6 +14,7 @@ import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
 import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
 import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
 
+
 public class RepositoryServiceVerticle extends AbstractVerticle {
     
     public static final String DEFAULT_REPO_ENGINE = "JenaTDB";
@@ -43,9 +44,9 @@ public class RepositoryServiceVerticle extends AbstractVerticle {
     @Override
     public void start() {
         ArtifactRepository repo = initRepository();
-        EventBus ebus = vertx.eventBus();
+        EventBus eventBus = vertx.eventBus();
         
-        ebus.consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
+        eventBus.consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
             RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
             
             String verb = request.getVerb();
