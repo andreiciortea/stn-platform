@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 class ArtifactNotFoundException extends Exception {}
 
 @SuppressWarnings("serial")
-class ArtifactRepositoryException extends Exception {}
+class RepositoryException extends Exception {}
 
 
 /**
@@ -40,7 +40,7 @@ public interface ArtifactRepository {
      * @return A {@link java.lang.String String} that encodes a serialization of the artifact.
      * @throws ArtifactNotFoundException If the artifact was not found.
      */
-    String getArtifact(String artifactIri, String format) throws ArtifactNotFoundException;
+    String getArtifact(String artifactIri, String format) throws ArtifactNotFoundException, RepositoryException;
     
     /**
      * Insert an artifact in the repository.
@@ -48,9 +48,9 @@ public interface ArtifactRepository {
      * @param artifactIri The artifact's IRI.
      * @param data A {@link java.lang.String String} that encodes a serialization of the artifact.
      * @param format The serialization format.
-     * @throws ArtifactRepositoryException If an exception occurred while accessing the repository.
+     * @throws RepositoryException If an exception occurred while accessing the repository.
      */
-    void createArtifact(String artifactIri, String data, String format) throws ArtifactRepositoryException;
+    void createArtifact(String artifactIri, String data, String format) throws RepositoryException;
     
     /**
      * Update an artifact in the repository.
@@ -59,16 +59,16 @@ public interface ArtifactRepository {
      * @param data A {@link java.lang.String String} that encodes the intended artifact serialization.
      * @param format The serialization format.
      * @throws ArtifactNotFoundException If the artifact does not exist. 
-     * @throws ArtifactRepositoryException If an exception occurred while accessing the repository.
+     * @throws RepositoryException If an exception occurred while accessing the repository.
      */
-    void updateArtifact(String artifactIri, String data, String format) throws ArtifactNotFoundException, ArtifactRepositoryException;
+    void updateArtifact(String artifactIri, String data, String format) throws ArtifactNotFoundException, RepositoryException;
     
     /**
      * Delete an artifact from the repository.
      * 
      * @param artifactIri The artifact's IRI.
      * @throws ArtifactNotFoundException If the artifact does not exist.
-     * @throws ArtifactRepositoryException If an exception occurred while accessing the repository.
+     * @throws RepositoryException If an exception occurred while accessing the repository.
      */
-    void deleteArtifact(String artifactIri) throws ArtifactNotFoundException, ArtifactRepositoryException;
+    void deleteArtifact(String artifactIri) throws ArtifactNotFoundException, RepositoryException;
 }

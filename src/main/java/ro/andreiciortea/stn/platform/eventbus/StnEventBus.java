@@ -8,7 +8,7 @@ import io.vertx.core.eventbus.Message;
 
 public class StnEventBus {
 
-    public static final String REPOSITORY_ADDRESS = "hub.service.repository";
+    public static final String REPOSITORY_ADDRESS = "ro.andreiciortea.stn.eventbus.repository";
     
     private Vertx vertx;
     

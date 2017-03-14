@@ -3,7 +3,6 @@ package ro.andreiciortea.stn.platform.repository;
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 
-import org.apache.http.HttpStatus;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -18,8 +17,6 @@ import org.apache.jena.tdb.base.file.Location;
 
 import io.vertx.core.json.JsonObject;
 import ro.andreiciortea.stn.platform.RdfUtils;
-import ro.andreiciortea.stn.platform.artifact.DigitalArtifactModelValidator;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
 
 
 public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
@@ -29,15 +26,23 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     private Dataset dataset;
     
     
+    private void initInMemory() {
+        dataset = TDBFactory.createDataset(Location.mem(DATASET_MEM_LOCATION));
+        TDB.getContext().set(TDB.symUnionDefaultGraph, true);
+    }
+    
     public void init(JsonObject config) {
-        boolean inMemory = config.getBoolean("in-memory", false);
-        
-        if (inMemory) {
-            dataset = TDBFactory.createDataset(Location.mem(DATASET_MEM_LOCATION));
-            TDB.getContext().set(TDB.symUnionDefaultGraph, true);
+        if (config == null) {
+            initInMemory();
         } else {
-            String assemblerFile = config.getString("assemblerFilePath", "store/tdb-assembler.ttl");
-            dataset = TDBFactory.assembleDataset(assemblerFile);
+            boolean inMemory = config.getBoolean("in-memory", false);
+            
+            if (inMemory) {
+                initInMemory();
+            } else {
+                String assemblerFile = config.getString("assemblerFilePath", "store/tdb-assembler.ttl");
+                dataset = TDBFactory.assembleDataset(assemblerFile);
+            }
         }
     }
     
@@ -71,19 +76,19 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     }
     
     @Override
-    public void createArtifact(String artifactUri, String rdfData, String format) throws ArtifactRepositoryException {
+    public void createArtifact(String artifactUri, String rdfData, String format) throws RepositoryException {
         try {
             dataset.begin(ReadWrite.WRITE);
             dataset.addNamedModel(artifactUri, RdfUtils.stringToRdfModel(rdfData, format));
             dataset.commit();
             dataset.end();
         } catch (JenaException e) {
-            throw new ArtifactRepositoryException();
+            throw new RepositoryException();
         }
     }
     
     @Override
-    public void updateArtifact(String artifactUri, String rdfData, String format) throws ArtifactNotFoundException, ArtifactRepositoryException {
+    public void updateArtifact(String artifactUri, String rdfData, String format) throws ArtifactNotFoundException, RepositoryException {
         if (!containsArtifact(artifactUri)) {
             throw new ArtifactNotFoundException();
         } else {
@@ -95,7 +100,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     }
     
     @Override
-    public void deleteArtifact(String artifactUri)  throws ArtifactNotFoundException, ArtifactRepositoryException {
+    public void deleteArtifact(String artifactUri)  throws ArtifactNotFoundException, RepositoryException {
         if (!containsArtifact(artifactUri)) {
             throw new ArtifactNotFoundException();
         } else {
@@ -107,7 +112,7 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
     }
     
     @Override
-    public RepositoryResponse runSelectQuery(String queryString) {
+    public ResultSet runSelectQuery(String queryString) throws RepositoryException {
         dataset.begin(ReadWrite.READ);
         
         try (QueryExecution qexec = QueryExecutionFactory.create(queryString, dataset)) {
@@ -118,38 +123,37 @@ public class JenaTDBRepository implements ArtifactRepository, SparqlRepository {
             
             dataset.end();
             
-            return new RepositoryResponse(HttpStatus.SC_OK, null, out.toString("UTF-8"));
+            return queryResultSet; //new RepositoryResponse(HttpStatus.SC_OK, null, out.toString("UTF-8"));
         } catch(Exception e) {
             dataset.end();
-            return new RepositoryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, e.getMessage());
+            throw new RepositoryException();
         }
     }
     
     @Override
-    public RepositoryResponse runConstructQuery(String queryString, String format) {
+    public Model runConstructQuery(String queryString, String format) throws RepositoryException {
         dataset.begin(ReadWrite.READ);
         
         try (QueryExecution qexec = QueryExecutionFactory.create(queryString, dataset)) {
             Model model = qexec.execConstruct();
             
-            String results = DigitalArtifactModelValidator.modelToString(model, format);
-            
             dataset.end();
-            return new RepositoryResponse(HttpStatus.SC_OK, null, results);
+            
+            return model;
         } catch(Exception e) {
             dataset.end();
-            return new RepositoryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, e.getMessage());
+            throw new RepositoryException();
         }
     }
     
     @Override
-    public RepositoryResponse runAskQuery(String queryString) {
+    public boolean runAskQuery(String queryString) throws RepositoryException {
         // TODO
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public RepositoryResponse runDescribeQuery(String queryString, String format) {
+    public Model runDescribeQuery(String queryString, String format) throws RepositoryException {
         // TODO
         throw new UnsupportedOperationException();
     }

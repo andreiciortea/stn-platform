@@ -40,11 +40,16 @@ public class HttpServerVerticle extends AbstractVerticle {
     }
     
     private void startServer() {
+        int port = DEFAULT_PORT;
+        String host = DEFAULT_HOST;
+        
         JsonObject httpConfig = config().getJsonObject("http");
         
-        server.requestHandler(router::accept).listen(
-                httpConfig.getInteger("port", DEFAULT_PORT),
-                httpConfig.getString("host", DEFAULT_HOST)
-            );
+        if (httpConfig != null) {
+            port = httpConfig.getInteger("port", DEFAULT_PORT);
+            httpConfig.getString("host", DEFAULT_HOST);
+        }
+        
+        server.requestHandler(router::accept).listen(port, host);
     }
 }

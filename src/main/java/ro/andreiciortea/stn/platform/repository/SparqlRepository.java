@@ -1,16 +1,16 @@
 package ro.andreiciortea.stn.platform.repository;
 
-import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
+
 
 public interface SparqlRepository {
 
-    // TODO: refactor
+    ResultSet runSelectQuery(String queryString) throws RepositoryException;
     
-    RepositoryResponse runSelectQuery(String queryString);
+    boolean runAskQuery(String queryString) throws RepositoryException;
     
-    RepositoryResponse runAskQuery(String queryString);
+    Model runConstructQuery(String queryString, String format) throws RepositoryException;
     
-    RepositoryResponse runConstructQuery(String queryString, String format);
-    
-    RepositoryResponse runDescribeQuery(String queryString, String format);
+    Model runDescribeQuery(String queryString, String format) throws RepositoryException;
 }
