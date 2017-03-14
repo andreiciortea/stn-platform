@@ -1,7 +1,5 @@
 package ro.andreiciortea.stn.platform.repository;
 
-import java.util.Locale;
-
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -9,8 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ProxyHelper;
-import ro.andreiciortea.stn.platform.repository.jena.tdb.JenaTDBRepositoryService;
-import ro.andreiciortea.stn.platform.repository.rdf4j.Rdf4jRepositoryService;
 
 
 @ProxyGen
@@ -37,11 +33,13 @@ public interface RepositoryService {
             inMemory = repoConfig.getBoolean("in-memory", false);
         }
         
-        switch (repoEngine.toUpperCase(Locale.ROOT)) {
-            case "JENATDB": return new JenaTDBRepositoryService(vertx, inMemory);
-            case "RDF4J" : return new Rdf4jRepositoryService(vertx);
-            default: return new JenaTDBRepositoryService(vertx, inMemory);
-        }
+//        switch (repoEngine.toUpperCase(Locale.ROOT)) {
+//            case "JENATDB": return new JenaTDBRepositoryService(vertx, inMemory);
+//            case "RDF4J" : return new Rdf4jRepositoryService(vertx);
+//            default: return new JenaTDBRepositoryService(vertx, inMemory);
+//        }
+        
+        return null;
     }
     
     static RepositoryService createProxy(Vertx vertx, String address) {
