@@ -16,6 +16,11 @@ import ro.andreiciortea.stn.vocabulary.STNCore;
 public class UserAccountHandler extends ArtifactHandler {
     
     @Override
+    public String getArtifactType() {
+        return STNCore.UserAccount.getURI();
+    }
+    
+    @Override
     public String processArtifactRepresentation(String artifactUri, 
             String representation, String format) throws InvalidArtifactRepresentationException {
         
@@ -39,5 +44,5 @@ public class UserAccountHandler extends ArtifactHandler {
             throw new InvalidArtifactRepresentationException();
         }
     }
-    
+
 }

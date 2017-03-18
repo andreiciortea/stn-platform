@@ -13,16 +13,14 @@ import com.google.gson.Gson;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
-import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
-import ro.andreiciortea.stn.platform.eventbus.BusMessage;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactRequest;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactResponse;
+import ro.andreiciortea.stn.platform.repository.RepositoryServiceVerticle;
 import ro.andreiciortea.stn.vocabulary.STNCore;
 
 @RunWith(VertxUnitRunner.class)
@@ -75,22 +73,15 @@ public class UserAccountHandlerTest {
         String testUri = "http://localhost:" + port + "/users/test";
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+                ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
                 
-                context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+                context.assertEquals(request.getVerb(), ArtifactRequest.GET);
+                context.assertEquals(request.getArtifactIri(), testUri);
                 
-                RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+                ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_OK, testUri, testRepresentation);
                 
-                context.assertEquals(request.getVerb(), RepositoryRequest.GET);
-                context.assertEquals(request.getArtifactUri(), testUri);
-                
-                RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_OK, testUri, testRepresentation);
-                
-                DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                
-                message.reply(response.toJson(), options);
+                message.reply(response.toJson());
             });
         
         vertx.createHttpClient().getNow(port, "localhost", "/users/test", 
@@ -119,21 +110,14 @@ public class UserAccountHandlerTest {
     public void testUserAccountNotFound(TestContext context) {
         Async async = context.async();
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-            String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+            ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
             
-            context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+            context.assertEquals(request.getVerb(), ArtifactRequest.GET);
             
-            RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+            ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactIri());
             
-            context.assertEquals(request.getVerb(), RepositoryRequest.GET);
-            
-            RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactUri());
-            
-            DeliveryOptions options = new DeliveryOptions();
-            options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-            
-            message.reply(response.toJson(), options);
+            message.reply(response.toJson());
         });
         
         vertx.createHttpClient().getNow(port, "localhost", "/users/foo", 
@@ -151,24 +135,17 @@ public class UserAccountHandlerTest {
         String testRepresentation = "<> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         String processedRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+                ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
                 
-                context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+                context.assertEquals(request.getVerb(), ArtifactRequest.POST);
+                context.assertEquals(request.getArtifactIri(), testUri);
+                context.assertEquals(request.getArtifactAsString(), processedRepresentation);
                 
-                RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+                ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_CREATED, 
+                        request.getArtifactIri(), request.getArtifactAsString());
                 
-                context.assertEquals(request.getVerb(), RepositoryRequest.POST);
-                context.assertEquals(request.getArtifactUri(), testUri);
-                context.assertEquals(request.getArtifactStr(), processedRepresentation);
-                
-                RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_CREATED, 
-                        request.getArtifactUri(), request.getArtifactStr());
-                
-                DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                
-                message.reply(response.toJson(), options);
+                message.reply(response.toJson());
             });
         
         vertx.createHttpClient().post(port, "localhost", "/users/")
@@ -214,24 +191,17 @@ public class UserAccountHandlerTest {
         String testUri = "http://localhost:" + port + "/users/myaccount";
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+                ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
                 
-                context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+                context.assertEquals(request.getVerb(), ArtifactRequest.PUT);
+                context.assertEquals(request.getArtifactIri(), testUri);
+                context.assertEquals(request.getArtifactAsString(), testRepresentation);
                 
-                RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+                ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_OK, 
+                        request.getArtifactIri(), request.getArtifactAsString());
                 
-                context.assertEquals(request.getVerb(), RepositoryRequest.PUT);
-                context.assertEquals(request.getArtifactUri(), testUri);
-                context.assertEquals(request.getArtifactStr(), testRepresentation);
-                
-                RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_OK, 
-                        request.getArtifactUri(), request.getArtifactStr());
-                
-                DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                
-                message.reply(response.toJson(), options);
+                message.reply(response.toJson());
             });
         
         vertx.createHttpClient().put(port, "localhost", "/users/myaccount")
@@ -274,27 +244,16 @@ public class UserAccountHandlerTest {
         String testUri = "http://localhost:" + port + "/users/test";
         String testRepresentation = "<" + testUri + "> a <" + STNCore.UserAccount.getURI().toString() + "> .";
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+                ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
                 
-                context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+                context.assertEquals(request.getVerb(), ArtifactRequest.DELETE);
+                context.assertEquals(request.getArtifactIri(), testUri);
                 
-                System.out.println("Got request: " + message.body().toString());
+                ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_OK, 
+                        request.getArtifactIri(), testRepresentation);
                 
-                RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
-                
-                context.assertEquals(request.getVerb(), RepositoryRequest.DELETE);
-                context.assertEquals(request.getArtifactUri(), testUri);
-                
-                System.out.println("Got a delete request!");
-                
-                RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_OK, 
-                        request.getArtifactUri(), testRepresentation);
-                
-                DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                
-                message.reply(response.toJson(), options);
+                message.reply(response.toJson());
             });
         
         vertx.createHttpClient().delete(port, "localhost", "/users/test", response -> {
@@ -314,22 +273,15 @@ public class UserAccountHandlerTest {
         
         String testUri = "http://localhost:" + port + "/users/test";
         
-        vertx.eventBus().consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-                String contentType = message.headers().get(BusMessage.HEADER_CONTENT_TYPE);
+        vertx.eventBus().consumer(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, message -> {
+                ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
                 
-                context.assertTrue(contentType.equalsIgnoreCase(RepositoryRequest.CONTENT_TYPE));
+                context.assertEquals(request.getVerb(), ArtifactRequest.DELETE);
+                context.assertEquals(request.getArtifactIri(), testUri);
                 
-                RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+                ArtifactResponse response = new ArtifactResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactIri());
                 
-                context.assertEquals(request.getVerb(), RepositoryRequest.DELETE);
-                context.assertEquals(request.getArtifactUri(), testUri);
-                
-                RepositoryResponse response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, request.getArtifactUri());
-                
-                DeliveryOptions options = new DeliveryOptions();
-                options.addHeader(BusMessage.HEADER_CONTENT_TYPE, response.getContentType());
-                
-                message.reply(response.toJson(), options);
+                message.reply(response.toJson());
             });
         
         vertx.createHttpClient().delete(port, "localhost", "/users/test", response -> {

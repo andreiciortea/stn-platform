@@ -7,12 +7,15 @@ import com.google.gson.Gson;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.ext.web.RoutingContext;
 import ro.andreiciortea.stn.platform.RdfUtils;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
-import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactNotification;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactRequest;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactResponse;
+import ro.andreiciortea.stn.platform.notification.NotificationService;
+import ro.andreiciortea.stn.platform.repository.RepositoryServiceVerticle;
 
 
 @SuppressWarnings("serial")
@@ -24,7 +27,9 @@ public abstract class ArtifactHandler {
     public static final String CONTENT_TYPE_TURTLE = "text/turtle"; 
     
     private boolean persistent = true;
-    private boolean observable = false; // TODO
+    private boolean observable = false;
+    
+    private Vertx vertx = Vertx.currentContext().owner();
     
     
     public ArtifactHandler withoutStorage() {
@@ -40,12 +45,12 @@ public abstract class ArtifactHandler {
     public void handleGetArtifact(RoutingContext routingContext) {
         String artifactUri = routingContext.request().absoluteURI();
         
-        RepositoryRequest repositoryRequest = new RepositoryRequest(RepositoryRequest.GET, artifactUri);
+        ArtifactRequest repositoryRequest = new ArtifactRequest(ArtifactRequest.GET, artifactUri);
         
         sendRepositoryRequest(repositoryRequest,
                 r -> {
                     if (r.succeeded()) {
-                        RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
+                        ArtifactResponse response = (new Gson()).fromJson(r.result().body(), ArtifactResponse.class);
                         
                         if (response.getStatusCode() == HttpStatus.SC_OK) {
                             routingContext
@@ -70,7 +75,11 @@ public abstract class ArtifactHandler {
             artifactStr = processArtifactRepresentation(artifactUri, artifactStr, RdfUtils.TURTLE);
             
             if (persistent) {
-                persistArtifact(routingContext, RepositoryRequest.PUT, artifactUri, artifactStr, HttpStatus.SC_OK);
+                persistArtifact(routingContext, ArtifactRequest.PUT, artifactUri, artifactStr, HttpStatus.SC_OK);
+            }
+            
+            if (observable) {
+                publishNotification(artifactUri, artifactStr);
             }
         } catch (InvalidArtifactRepresentationException e) {
             routingContext.fail(HttpStatus.SC_BAD_REQUEST);
@@ -89,7 +98,11 @@ public abstract class ArtifactHandler {
             artifactStr = processArtifactRepresentation(artifactUri, artifactStr, RdfUtils.TURTLE);
             
             if (persistent) {
-                persistArtifact(routingContext, RepositoryRequest.POST, artifactUri, artifactStr, HttpStatus.SC_CREATED);
+                persistArtifact(routingContext, ArtifactRequest.POST, artifactUri, artifactStr, HttpStatus.SC_CREATED);
+            }
+            
+            if (observable) {
+                publishNotification(artifactUri, artifactStr);
             }
         } catch (InvalidContainerUriException e) {
             routingContext.fail(HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -101,7 +114,7 @@ public abstract class ArtifactHandler {
     public void handleDeleteArtifact(RoutingContext routingContext) {
         String artifactUri = routingContext.request().absoluteURI();
         
-        RepositoryRequest repositoryRequest = new RepositoryRequest(RepositoryRequest.DELETE, artifactUri);
+        ArtifactRequest repositoryRequest = new ArtifactRequest(ArtifactRequest.DELETE, artifactUri);
         
         if (persistent) {
             System.out.println("Sending delete request to repository");
@@ -109,7 +122,7 @@ public abstract class ArtifactHandler {
             sendRepositoryRequest(repositoryRequest,
                     r -> {
                         if (r.succeeded()) {
-                            RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
+                            ArtifactResponse response = (new Gson()).fromJson(r.result().body(), ArtifactResponse.class);
                             
                             if (response.getStatusCode() == HttpStatus.SC_OK) {
                                 routingContext
@@ -139,12 +152,12 @@ public abstract class ArtifactHandler {
     private void persistArtifact(RoutingContext routingContext, String verb, 
             String artifactUri, String artifactStr, int successStatusCode) {
         
-        RepositoryRequest repositoryRequest = new RepositoryRequest(verb, artifactUri, artifactStr);
+        ArtifactRequest repositoryRequest = new ArtifactRequest(verb, artifactUri, artifactStr);
         
         sendRepositoryRequest(repositoryRequest,
                 r -> {
                     if (r.succeeded()) {
-                        RepositoryResponse response = (new Gson()).fromJson(r.result().body(), RepositoryResponse.class);
+                        ArtifactResponse response = (new Gson()).fromJson(r.result().body(), ArtifactResponse.class);
                         
                         if (response.getStatusCode() == successStatusCode) {
                             routingContext
@@ -155,7 +168,7 @@ public abstract class ArtifactHandler {
                             if (successStatusCode == HttpStatus.SC_CREATED) {
                                 routingContext
                                     .response()
-                                    .putHeader(HttpHeaders.LOCATION, response.getArtifactUri());
+                                    .putHeader(HttpHeaders.LOCATION, response.getArtifactIri());
                             }
                             
                             routingContext
@@ -169,11 +182,17 @@ public abstract class ArtifactHandler {
                 });
     }
     
-    private void sendRepositoryRequest(RepositoryRequest request, Handler<AsyncResult<Message<String>>> handler) {
-        StnEventBus eventBus = new StnEventBus();
-        
-        eventBus.sendMessage(StnEventBus.REPOSITORY_ADDRESS, request, handler);
+    private void sendRepositoryRequest(ArtifactRequest request, Handler<AsyncResult<Message<String>>> handler) {
+        vertx.eventBus().send(RepositoryServiceVerticle.REPOSITORY_BUS_ADDRESS, request.toJson(), handler);
     }
+    
+    private void publishNotification(String artifactUri, String artifactStr) {
+        vertx.eventBus().publish(NotificationService.EVENT_BUS_ADDRESS, 
+                (new ArtifactNotification(artifactUri, getArtifactType(), artifactStr)).toJson());
+    }
+    
+    
+    public abstract String getArtifactType();
     
     public abstract String processArtifactRepresentation(String artifactUri, 
             String representation, String format) throws InvalidArtifactRepresentationException;

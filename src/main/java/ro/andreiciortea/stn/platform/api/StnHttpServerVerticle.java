@@ -1,8 +1,5 @@
 package ro.andreiciortea.stn.platform.api;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -14,8 +11,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 import ro.andreiciortea.stn.platform.Utils;
 import ro.andreiciortea.stn.platform.artifact.DigitalArtifactModel;
 import ro.andreiciortea.stn.platform.artifact.UserAccountModel;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
-import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactRequest;
 
 
 public class StnHttpServerVerticle extends AbstractVerticle {
@@ -84,8 +80,8 @@ public class StnHttpServerVerticle extends AbstractVerticle {
             
             String artifactUri = Utils.buildArtifactUri(artifactBaseUri, requestingContext.request().path());
             
-            RepositoryRequest repoReq = new RepositoryRequest(RepositoryRequest.GET, artifactUri);
-            (new StnEventBus()).sendMessage(StnEventBus.REPOSITORY_ADDRESS, repoReq,
+            ArtifactRequest repoReq = new ArtifactRequest(ArtifactRequest.GET, artifactUri);
+/*            (new StnEventBus()).sendMessage(StnEventBus.REPOSITORY_ADDRESS, repoReq,
             
 //            repository.getArtifactAsString(
 //                    Utils.buildArtifactUri(artifactBaseUri, requestingContext.request().path()), 
@@ -110,7 +106,7 @@ public class StnHttpServerVerticle extends AbstractVerticle {
 //        };
                     
                     
-                    );
+                    );*/
         };
     }
     

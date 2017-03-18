@@ -10,15 +10,14 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import ro.andreiciortea.stn.platform.RdfUtils;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryRequest;
-import ro.andreiciortea.stn.platform.eventbus.RepositoryResponse;
-import ro.andreiciortea.stn.platform.eventbus.StnEventBus;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactRequest;
+import ro.andreiciortea.stn.platform.eventbus.ArtifactResponse;
 
 
 public class RepositoryServiceVerticle extends AbstractVerticle {
-    
+
+    public static final String REPOSITORY_BUS_ADDRESS = "ro.andreiciortea.stn.eventbus.repository";
     public static final String DEFAULT_REPO_ENGINE = "JenaTDB";
-    
     
     public ArtifactRepository initRepository() {
         String repoEngine = DEFAULT_REPO_ENGINE;
@@ -46,35 +45,35 @@ public class RepositoryServiceVerticle extends AbstractVerticle {
         ArtifactRepository repo = initRepository();
         EventBus eventBus = vertx.eventBus();
         
-        eventBus.consumer(StnEventBus.REPOSITORY_ADDRESS, message -> {
-            RepositoryRequest request = (new Gson()).fromJson(message.body().toString(), RepositoryRequest.class);
+        eventBus.consumer(REPOSITORY_BUS_ADDRESS, message -> {
+            ArtifactRequest request = (new Gson()).fromJson(message.body().toString(), ArtifactRequest.class);
             
             String verb = request.getVerb();
-            String artifactIri = request.getArtifactUri();
-            RepositoryResponse response;
+            String artifactIri = request.getArtifactIri();
+            ArtifactResponse response;
             
             try {
                 
-                if (verb.equalsIgnoreCase(RepositoryRequest.GET)) {
+                if (verb.equalsIgnoreCase(ArtifactRequest.GET)) {
                     String artifactStr = repo.getArtifact(artifactIri, RdfUtils.TURTLE);
-                    response = new RepositoryResponse(HttpStatus.SC_OK, artifactIri, artifactStr);
-                } else if (verb.equalsIgnoreCase(RepositoryRequest.POST)) {
-                    repo.createArtifact(artifactIri, request.getArtifactStr(), RdfUtils.TURTLE);
-                    response = new RepositoryResponse(HttpStatus.SC_CREATED, artifactIri, request.getArtifactStr());
-                } else if (verb.equalsIgnoreCase(RepositoryRequest.PUT)) {
-                    repo.updateArtifact(artifactIri, request.getArtifactStr(), RdfUtils.TURTLE);
-                    response = new RepositoryResponse(HttpStatus.SC_OK, artifactIri, request.getArtifactStr());
-                } else if (verb.equalsIgnoreCase(RepositoryRequest.DELETE)) {
+                    response = new ArtifactResponse(HttpStatus.SC_OK, artifactIri, artifactStr);
+                } else if (verb.equalsIgnoreCase(ArtifactRequest.POST)) {
+                    repo.createArtifact(artifactIri, request.getArtifactAsString(), RdfUtils.TURTLE);
+                    response = new ArtifactResponse(HttpStatus.SC_CREATED, artifactIri, request.getArtifactAsString());
+                } else if (verb.equalsIgnoreCase(ArtifactRequest.PUT)) {
+                    repo.updateArtifact(artifactIri, request.getArtifactAsString(), RdfUtils.TURTLE);
+                    response = new ArtifactResponse(HttpStatus.SC_OK, artifactIri, request.getArtifactAsString());
+                } else if (verb.equalsIgnoreCase(ArtifactRequest.DELETE)) {
                     repo.deleteArtifact(artifactIri);
-                    response = new RepositoryResponse(HttpStatus.SC_OK, artifactIri, request.getArtifactStr());
+                    response = new ArtifactResponse(HttpStatus.SC_OK, artifactIri, request.getArtifactAsString());
                 } else {
-                    response = new RepositoryResponse(HttpStatus.SC_BAD_REQUEST, artifactIri); 
+                    response = new ArtifactResponse(HttpStatus.SC_BAD_REQUEST, artifactIri); 
                 }
                 
             } catch (ArtifactNotFoundException e) {
-                response = new RepositoryResponse(HttpStatus.SC_NOT_FOUND, artifactIri);
+                response = new ArtifactResponse(HttpStatus.SC_NOT_FOUND, artifactIri);
             } catch (Exception e) {
-                response = new RepositoryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, artifactIri);
+                response = new ArtifactResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, artifactIri);
             }
             
             message.reply(response.toJson());

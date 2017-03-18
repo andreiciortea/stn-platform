@@ -10,7 +10,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 
-import ro.andreiciortea.stn.platform.repository.RepositoryService;
+import ro.andreiciortea.stn.platform.RdfUtils;
 
 
 public class DigitalArtifactModelValidator {
@@ -56,7 +56,7 @@ public class DigitalArtifactModelValidator {
     }
     
     private static String modelToString(Model model) {
-        return modelToString(model, RepositoryService.TURTLE);
+        return modelToString(model, RdfUtils.TURTLE);
     }
     
     public static String modelToString(Model model, String serializationFormat) {
