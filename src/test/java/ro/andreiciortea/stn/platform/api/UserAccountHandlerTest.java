@@ -18,6 +18,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import ro.andreiciortea.stn.platform.artifact.ArtifactHandler;
 import ro.andreiciortea.stn.platform.eventbus.ArtifactRequest;
 import ro.andreiciortea.stn.platform.eventbus.ArtifactResponse;
 import ro.andreiciortea.stn.platform.repository.RepositoryServiceVerticle;

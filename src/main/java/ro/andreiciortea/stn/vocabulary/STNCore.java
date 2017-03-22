@@ -25,6 +25,7 @@ public class STNCore {
     public static final Property source             = property("source");
     public static final Property target             = property("target");
     
+    public static final Property hostedBy           = property("hostedBy");
     public static final Property callbackUri        = property("callbackUri");
     
     public static final Property heldBy             = property("heldBy");

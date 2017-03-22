@@ -1,5 +1,7 @@
 package ro.andreiciortea.stn.platform.notification;
 
+import java.util.List;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -14,14 +16,16 @@ public class HttpNotificationDispatcher implements NotificationDispatcher {
     }
     
     @Override
-    public void notifyObserver(AgentCard observer, ArtifactNotification notification) {
+    public void dispatchNotification(ArtifactNotification notification, List<AgentCard> observers) {
         HttpClientOptions options = new HttpClientOptions().setKeepAlive(true);
         HttpClient client = vertx.createHttpClient(options);
-
-        // TODO update notification data model
-        client.postAbs(observer.getCallbackIRI(), response -> {
-//            System.out.println("Received response with status code " + response.statusCode());
-        }).putHeader("Content-type", "text/turtle").end(notification.getArtifactAsString());
+        
+        for (AgentCard o : observers) {
+            // TODO update notification data model
+            client.postAbs(o.getCallbackIRI())
+                    .putHeader("Content-type", "text/turtle")
+                    .end(notification.getArtifactAsString());
+        }
     }
 
 }

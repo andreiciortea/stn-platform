@@ -1,8 +1,11 @@
 package ro.andreiciortea.stn.platform.notification;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.vertx.core.Vertx;
 import ro.andreiciortea.stn.platform.eventbus.ArtifactNotification;
-import ro.andreiciortea.stn.platform.eventbus.ObserverNotification;
+import ro.andreiciortea.stn.platform.eventbus.AgentNotification;
 
 
 public class EventBusNotificationDispatcher implements NotificationDispatcher {
@@ -16,10 +19,13 @@ public class EventBusNotificationDispatcher implements NotificationDispatcher {
     }
     
     @Override
-    public void notifyObserver(AgentCard agentCard, ArtifactNotification message) {
-        if (agentCard != null && agentCard.getAgentIRI() != null) {
-            ObserverNotification notification = new ObserverNotification(agentCard.getAgentIRI(), message.getArtifactAsString());
-            vertx.eventBus().publish(OBSERVER_NOTIFICATION, notification.toJson());
-        }
+    public void dispatchNotification(ArtifactNotification message, List<AgentCard> observers) {
+        List<String> observerIRIs = observers.stream()
+                                             .map(card -> { return card.getAgentIRI(); })
+                                             .collect(Collectors.toList());
+        
+        AgentNotification notification = new AgentNotification(observerIRIs, message.getArtifactAsString());
+        
+        vertx.eventBus().publish(OBSERVER_NOTIFICATION, notification.toJson());
     }
 }

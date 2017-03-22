@@ -1,18 +1,18 @@
 package ro.andreiciortea.stn.platform.eventbus;
 
-public class ObserverNotification extends BusMessage {
+public class AgentNotification extends BusMessage {
     
-    private String obseverIRI;
+    private Iterable<String> agentIRIs;
     private String callbackIRI;
     private String payload;
     
-    public ObserverNotification(String observerIri, String payload) {
-        this.obseverIRI = observerIri;
+    public AgentNotification(Iterable<String> agentIRIs, String payload) {
+        this.agentIRIs = agentIRIs;
         this.payload = payload;
     }
     
-    public String getObserverIRI() {
-        return this.obseverIRI;
+    public Iterable<String> getObserverIRI() {
+        return this.agentIRIs;
     }
     
     public String getCallbackIRI() {

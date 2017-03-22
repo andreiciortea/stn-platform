@@ -71,9 +71,7 @@ public class NotificationServiceVerticle extends AbstractVerticle {
         }
         
         for (NotificationDispatcher d : dispacherList) {
-            for (AgentCard o : observers) {
-                d.notifyObserver(o, notification);
-            }
+            d.dispatchNotification(notification, observers);
         }
     }
 }

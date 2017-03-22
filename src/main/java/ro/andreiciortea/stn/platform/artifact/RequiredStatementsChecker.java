@@ -1,22 +1,17 @@
 package ro.andreiciortea.stn.platform.artifact;
 
 import java.util.List;
+import java.util.function.BiPredicate;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 
 
-public class BasicArtifactValidator implements ArtifactValidator {
-    
-    List<Statement> requiredStatements;
-    
-    public BasicArtifactValidator(List<Statement> requiredStatements) {
-        this.requiredStatements = requiredStatements;
-    }
+public class RequiredStatementsChecker implements BiPredicate<Model, List<Statement>> {
     
     @Override
-    public boolean validate(Model model) {
-        if (requiredStatements == null || model == null) {
+    public boolean test(Model model, List<Statement> requiredStatements) {
+        if (requiredStatements == null || requiredStatements.isEmpty()) {
             return true;
         }
         
@@ -28,4 +23,5 @@ public class BasicArtifactValidator implements ArtifactValidator {
         
         return true;
     }
+
 }

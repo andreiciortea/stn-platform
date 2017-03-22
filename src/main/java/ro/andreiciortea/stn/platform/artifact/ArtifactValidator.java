@@ -4,6 +4,6 @@ import org.apache.jena.rdf.model.Model;
 
 public interface ArtifactValidator {
 
-    boolean validate(Model model);
+    boolean validate(String artifactIRI, Model model);
     
 }

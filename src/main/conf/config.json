@@ -1,8 +1,14 @@
 {
   "http.port" : 8080,
+  "platformIRI" : "http://andreiciortea.ro/.well-known/stn#platform",
   "http" :
     {
       "port" : 8080,
+      "host" : "localhost"
+    },
+  "websocket" :
+    {
+      "port" : 8090,
       "host" : "localhost"
     },
   "benchmark" :

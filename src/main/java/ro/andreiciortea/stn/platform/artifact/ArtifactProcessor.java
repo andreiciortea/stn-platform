@@ -4,6 +4,6 @@ import org.apache.jena.rdf.model.Model;
 
 public interface ArtifactProcessor {
     
-    Model process(Model model);
+    Model process(String artifactIRI, Model model);
     
 }
